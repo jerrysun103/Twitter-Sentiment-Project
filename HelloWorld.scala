@@ -30,8 +30,11 @@ object HelloWorld {
     val sc = spark.sparkContext
     val loadConfig = ReadConfig(Map("uri"->uri, "collection" -> "TwitterSentimentProject", "database" -> "LearnMongoDB"))
     val rdd = MongoSpark.load(sc, loadConfig)
-    rdd.take(10).foreach(println)
-    spark.stop()
+
+    import spark.implicits._
+    val rdd_df = rdd.toDF()
+    rdd_df.printSchema()
+//    val df = setUpPipeline(rdd_df)
     println("Apache Spark Application Completed.")
 
   }
