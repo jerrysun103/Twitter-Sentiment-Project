@@ -1,15 +1,44 @@
 package test
 
 import org.apache.spark.SparkContext
-import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.{SparkSession, DataFrame}
 import org.mongodb.scala.{MongoClient, MongoCollection, MongoDatabase}
 import com.mongodb.spark.config._
 import com.mongodb.spark._
+import com.johnsnowlabs.nlp.pretrained.PretrainedPipeline
+import com.johnsnowlabs.nlp.SparkNLP
+import org.apache.spark.sql.functions.{col, udf}
+import org.apache.spark.sql.types.{IntegerType, LongType, StructType}
+//import org.apache.spark.sql.functions.{array_contains, col}
+//import scala.math.BigDecimal.RoundingMode
 
 object HelloWorld {
-//  case class MongoClient(uri: String) {
-//    def getDatabase(str: String): MongoDatabase = ???
-//  }
+
+  case class Tweet(date:String, ids:Double, text:String, user:String, _id: String, polarity:Int)
+
+  //initialize JohnSnowLabs Spark NLP library pretrained sentiment analysis pipeline
+  def setUpPipeline(df: DataFrame): DataFrame = {
+    val pipeline = PretrainedPipeline("analyze_sentimentdl_use_twitter", lang = "en")
+    val selectColumns = df.columns.toSeq
+    //select ugly name text
+    val name = selectColumns(2)
+    val results = pipeline.annotate(df, name)
+
+
+//    extract sentiment result
+//    We start by declaring an "anonymous function" in Scala
+    val lookupSentiment : StructType => String = (sentiment:StructType)=>{
+      sentiment("result").asInstanceOf[String]
+    }
+
+    // Then wrap it with a udf
+    val lookupSentimentUDF = udf(lookupSentiment)
+
+    // Add a movieTitle column using our new udf
+    val dfWithSentiment = results.withColumn("SentimentResult", lookupSentimentUDF(col("sentiment")))
+
+    dfWithSentiment
+  }
 
   def main(args: Array[String]): Unit = {
     println("Apache Spark Application Started ...")
@@ -29,42 +58,31 @@ object HelloWorld {
 
     val sc = spark.sparkContext
     val loadConfig = ReadConfig(Map("uri"->uri, "collection" -> "TwitterSentimentProject", "database" -> "LearnMongoDB"))
-    val rdd = MongoSpark.load(sc, loadConfig)
-
     import spark.implicits._
-    val rdd_df = rdd.toDF()
-    rdd_df.printSchema()
-//    val df = setUpPipeline(rdd_df)
+    val rdd = MongoSpark.load(sc, loadConfig).toDF()
+
+    val df = setUpPipeline(rdd)
+    df.printSchema()
+    df.take(5).foreach(println)
+
+//    println(selectColumns)
+//    println(name)
+//    println(rdd.getClass)
+//    rdd.printSchema()
+//    rdd.select(name).show()
+
+////    val rdd_df = rdd.toDF()
+//    val dfWithSchema = spark.createDataFrame(rdd).toDF("date", "ids", "text", "user", "_id", "polarity")
+//    dfWithSchema.select("text").show()
+
+//    rdd_df.printSchema
+//    rdd_df.take(5).foreach(println)
+
+//    df.printSchema()
+
+
     println("Apache Spark Application Completed.")
 
   }
 }
 
-//    //configuration
-//    val mongodb_host_name = "localhost"
-//    val mongodb_port_no = "27017"
-//    val mongodb_user_name = "admin"
-//    val mongodb_password = "Z7aDPBAx9@GjWJw"
-//    val mongodb_database_name = "LearnMongoDB"
-//    val mongodb_collection_name = "TwitterSentimentProject"
-//
-//    val spark_mongodb_output_uri = "mongodb://" + mongodb_user_name + ":" +
-//      mongodb_password + "@" + mongodb_host_name + ":" + mongodb_port_no +
-//      "/" + mongodb_database_name + "." + mongodb_collection_name
-//
-//    val df = spark.read
-//      .format("mongo")
-//      .option("uri", spark_mongodb_output_uri)
-//      .option("database", mongodb_database_name)
-//      .option("collection", mongodb_collection_name)
-//      .load()
-
-//    val client: MongoClient = MongoClient(uri)
-//    val db: MongoDatabase = client.getDatabase("LearnMongoDB")
-////    val mycollection: MongoCollection = db.getCollection("TwitterSentimentProject")
-//    db.listCollectionNames()
-// System.setProperty("org.mongodb.async.type", "netty")
-
-//Create Spark Context
-//val sc = new SparkContext("local[*]", "MongoDB")
-//sc.loadFromMongoDB(ReadConfig(Map("uri" -> uri))) // Uses the ReadConfig
