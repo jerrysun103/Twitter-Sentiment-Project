@@ -36,7 +36,7 @@ object SparkNLPDriver {
       .orderBy($"count".desc)
       .cache()
 
-    sentimentResults.show()
+//    sentimentResults.show()
     sentimentResults
   }
 
@@ -64,6 +64,7 @@ object SparkNLPDriver {
 
   //Returns percentage of positive to negative tweets with two decimal precision
   def positiveRatio(posSentiment: Int, negSentiment: Int): Double = {
+    // ratio = # of positive / (# of positive + # of negative)
     val posRatio =
       posSentiment.toDouble / (posSentiment.toDouble + negSentiment.toDouble)
 
@@ -84,8 +85,8 @@ object SparkNLPDriver {
     val resultsDF = spark
       .createDataFrame(
         Seq(
-          ("Number of Negative Sentiments", negResults),
-          ("Number of Positive Sentiments", posResults),
+          ("Number_Negative_Sentiments", negResults),
+          ("Number_positive_Sentiments", posResults),
           ("Percentage of Positive Sentiments", finalResults)
         )
       )
