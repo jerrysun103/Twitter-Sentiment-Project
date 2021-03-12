@@ -9,7 +9,7 @@ import org.apache.spark.sql.functions.{col, udf}
 import org.apache.spark.sql.types.{StructType, StructField}
 
 object MongoDBDriver {
-  def connectSentiment140(uri: String): DataFrame = {
+  def connectCollection(uri: String, collectionName: String): DataFrame = {
     /* Create the SparkSession.
     */
     val spark = SparkSession.builder()
@@ -20,7 +20,7 @@ object MongoDBDriver {
       .getOrCreate()
 
     val sc = spark.sparkContext
-    val loadConfig = ReadConfig(Map("uri"->uri, "collection" -> "TwitterSentimentProject", "database" -> "LearnMongoDB"))
+    val loadConfig = ReadConfig(Map("uri"->uri, "collection" -> collectionName, "database" -> "LearnMongoDB"))
     import spark.implicits._
     val rdd = MongoSpark.load(sc, loadConfig).toDF()
     rdd

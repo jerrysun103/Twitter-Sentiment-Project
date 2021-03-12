@@ -1,4 +1,4 @@
-import MongoDB.MongoDBDriver.connectSentiment140
+import MongoDB.MongoDBDriver.{connectCollection}
 import SparkNLP.SparkNLPDriver.getSentimentSummary
 
 object Main {
@@ -10,11 +10,17 @@ object Main {
       "cluster0-shard-00-01.k9dyo.mongodb.net:27017,cluster0-shard-00-02.k9dyo.mongodb.net:27017/LearnMongoDB?ssl=" +
       "true&replicaSet=atlas-1ek15t-shard-0&authSource=admin&retryWrites=true&w=majority"
 
+    // collection name
+//    val colletionName = "TwitterSentimentProject"
+    val colletionName = "TestCollection"
+
     // get the sentiment140 DataFrame
-    val sentiment140_DF = connectSentiment140(uri)
+    val sentiment_DF = connectCollection(uri,colletionName)
 
     // get the sentiment summary for sentiment140 dataset
-    val sentiment_summary = getSentimentSummary(sentiment140_DF)
+    val sentiment_summary = getSentimentSummary(sentiment_DF)
+
+    sentiment_summary.show()
 
     println("Apache Spark Application Completed.")
   }
