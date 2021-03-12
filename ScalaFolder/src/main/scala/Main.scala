@@ -11,8 +11,8 @@ object Main {
       "true&replicaSet=atlas-1ek15t-shard-0&authSource=admin&retryWrites=true&w=majority"
 
     // collection name
-//    val colletionName = "TwitterSentimentProject"
-    val colletionName = "TestCollection"
+    val colletionName = "TwitterSentimentProject"
+//    val colletionName = "TestCollection"
 
     // get the sentiment140 DataFrame
     val sentiment_DF = connectCollection(uri,colletionName)

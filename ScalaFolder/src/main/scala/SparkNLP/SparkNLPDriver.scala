@@ -99,23 +99,23 @@ object SparkNLPDriver {
   def tweetPositiveNegative(spark: SparkSession, df: DataFrame): DataFrame = {
     // use pretrained pipeline to fit dataframe(add sentiment structs)
     val dfWithSentiment = setUpPipeline(df)
-    println("pipeline")
+    println("pipeline done")
 
     // groupby sentiment, then count
     val sentiments = analyzeSentiment(spark, dfWithSentiment)
-    println("sentiment")
+    println("sentiment done")
 
     // compute the negtive sentiment count
     val negSent = negativeSentiments(spark, sentiments)
-    println("negative")
+    println("negative count done")
 
     // compute the positive sentiment count
     val posSent = positiveSentiments(spark, sentiments)
-    println("positive")
+    println("positive count done")
 
     // compute the ratio
     val finalPosRatio = positiveRatio(posSent, negSent).toInt
-    println("ratio")
+    println("ratio done")
 
     createResultsDf(spark, negSent, posSent, finalPosRatio)
   }
