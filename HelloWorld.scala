@@ -8,13 +8,13 @@ import com.mongodb.spark._
 import com.johnsnowlabs.nlp.pretrained.PretrainedPipeline
 import com.johnsnowlabs.nlp.SparkNLP
 import org.apache.spark.sql.functions.{col, udf}
-import org.apache.spark.sql.types.{IntegerType, LongType, StructType}
+import org.apache.spark.sql.types.{StructType, StructField}
 //import org.apache.spark.sql.functions.{array_contains, col}
 //import scala.math.BigDecimal.RoundingMode
 
 object HelloWorld {
 
-  case class Tweet(date:String, ids:Double, text:String, user:String, _id: String, polarity:Int)
+//  case class Tweet(date:String, ids:Double, text:String, user:String, _id: String, polarity:Int)
 
   //initialize JohnSnowLabs Spark NLP library pretrained sentiment analysis pipeline
   def setUpPipeline(df: DataFrame): DataFrame = {
@@ -24,19 +24,21 @@ object HelloWorld {
     val name = selectColumns(2)
     val results = pipeline.annotate(df, name)
 
-
-//    extract sentiment result
-//    We start by declaring an "anonymous function" in Scala
-    val lookupSentiment : StructType => String = (sentiment:StructType)=>{
-      sentiment("result").asInstanceOf[String]
-    }
-
-    // Then wrap it with a udf
-    val lookupSentimentUDF = udf(lookupSentiment)
-
-    // Add a movieTitle column using our new udf
-    val dfWithSentiment = results.withColumn("SentimentResult", lookupSentimentUDF(col("sentiment")))
-
+////    extract sentiment result
+////    We start by declaring an "anonymous function" in Scala
+//    val lookupSentiment : StructType => String = (sentiment:StructType)=>{
+////        sentiment("result").asInstanceOf[String]
+//        sentiment.apply("result").toString()
+//    }
+//
+//    // Then wrap it with a udf
+//    val lookupSentimentUDF = udf(lookupSentiment)
+//
+//    // Add a sentiment column using our new udf
+//    val dfWithSentiment = results.withColumn("SentimentResult", lookupSentimentUDF(col("sentiment")))
+//
+////    val dfWithSentiment = results.select(($"sentiment.result").as("SentimentResult"))
+    val dfWithSentiment = results.select(results.col("sentiment.result").as("SentimentResult"))
     dfWithSentiment
   }
 
@@ -61,9 +63,12 @@ object HelloWorld {
     import spark.implicits._
     val rdd = MongoSpark.load(sc, loadConfig).toDF()
 
-    val df = setUpPipeline(rdd)
-    df.printSchema()
-    df.take(5).foreach(println)
+
+
+    val df_withSentiment = setUpPipeline(rdd)
+//    df_withSentiment.printSchema()
+    df_withSentiment.select("SentimentResult").show()
+//    df.take(5).foreach(println)
 
 //    println(selectColumns)
 //    println(name)
