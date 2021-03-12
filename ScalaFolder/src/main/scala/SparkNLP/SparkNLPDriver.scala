@@ -36,7 +36,7 @@ object SparkNLPDriver {
       .orderBy($"count".desc)
       .cache()
 
-    println(sentimentResults.count())
+    sentimentResults.show()
     sentimentResults
   }
 
