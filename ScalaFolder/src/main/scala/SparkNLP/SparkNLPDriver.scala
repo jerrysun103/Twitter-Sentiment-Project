@@ -2,6 +2,7 @@ package SparkNLP
 
 import com.johnsnowlabs.nlp.pretrained.PretrainedPipeline
 import com.johnsnowlabs.nlp.SparkNLP
+import org.apache.spark.sql._
 import org.apache.spark.sql.{SparkSession, DataFrame}
 import org.apache.spark.sql.functions.{array_contains, col}
 import scala.math.BigDecimal.RoundingMode
@@ -11,8 +12,14 @@ object SparkNLPDriver {
   def setUpPipeline(df: DataFrame): DataFrame = {
     val pipeline =
       PretrainedPipeline("analyze_sentimentdl_use_twitter", lang = "en")
-    val results = pipeline.annotate(df, "value")
-    //make it work with $"col1"
+
+    val selectColumns = df.columns.toSeq
+
+    //select ugly name text
+    val name = selectColumns(2)
+
+    val results = pipeline.annotate(df, name)
+
     results
   }
 
@@ -50,7 +57,7 @@ object SparkNLPDriver {
       .where(array_contains(($"Sentiment Results"), "negative"))
       .collect()
 
-    // println(negativeSentiment(0)(1))
+//    println(negativeSentiment(0)(1))
     negativeSentiment(0)(1).toString.toInt
   }
 
@@ -87,10 +94,19 @@ object SparkNLPDriver {
 
 
   def tweetPositiveNegative(spark: SparkSession, df: DataFrame): DataFrame = {
+    // use pretrained pipeline to fit dataframe(add sentiment structs)
     val dfWithSentiment = setUpPipeline(df)
+
+    // groupby sentiment, then count
     val sentiments = analyzeSentiment(spark, dfWithSentiment)
+
+    // compute the negtive sentiment count
     val negSent = negativeSentiments(spark, sentiments)
+
+    // compute the positive sentiment count
     val posSent = positiveSentiments(spark, sentiments)
+
+    // compute the ratio
     val finalPosRatio = positiveRatio(posSent, negSent).toInt
 
     createResultsDf(spark, negSent, posSent, finalPosRatio)
@@ -99,11 +115,12 @@ object SparkNLPDriver {
   //runs all methods above
   def getSentimentSummary(df: DataFrame): DataFrame = {
     /* Create the SparkSession.
-*/
+    */
     val spark = SparkSession.builder()
       .master("local")
       .appName("MongoSparkConnectorIntro")
       .getOrCreate()
+
     val sentimentSummaryDF = tweetPositiveNegative(spark, df)
 
     sentimentSummaryDF

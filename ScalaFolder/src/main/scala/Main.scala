@@ -1,4 +1,5 @@
 import MongoDB.MongoDBDriver.connectSentiment140
+import SparkNLP.SparkNLPDriver.getSentimentSummary
 
 object Main {
   def main(args: Array[String]): Unit = {
@@ -12,6 +13,8 @@ object Main {
     // get the sentiment140 DataFrame
     val sentiment140_DF = connectSentiment140(uri)
 
+    // get the sentiment summary for sentiment140 dataset
+    val sentiment_summary = getSentimentSummary(sentiment140_DF)
 
     println("Apache Spark Application Completed.")
   }
