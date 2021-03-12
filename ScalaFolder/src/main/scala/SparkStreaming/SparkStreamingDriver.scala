@@ -1,0 +1,5 @@
+package SparkStreaming
+
+object SparkStreamingDriver {
+
+}
