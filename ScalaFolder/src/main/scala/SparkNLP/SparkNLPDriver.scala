@@ -156,11 +156,14 @@ object SparkNLPDriver {
     //add test column to compare label and sentiment predict
     val plus = "positive"
     val minus = "negative"
-    val sentimentWithAccuracy = selected_sentiment_DF.withColumn("test result", when(((col("polarity") == 0 &&
-                                                                                        col("SentimentResult") == lit(minus))
-                                                                                        || (col("polarity") == 4 &&
-                                                                                        col("SentimentResult") == lit(plus)), 0).otherwise(1)))
 
+    val sentimentWithAccuracy = selected_sentiment_DF.withColumn("test result", when(col("polarity") === 0 && col("SentimentResult") === lit(minus),0)
+                                                     .when(col("polarity") === 4 && col("SentimentResult") === lit(plus), 0)
+                                                     .otherwise(1))
+
+    val accuracy_lst: Array[Int] = sentimentWithAccuracy.select("test result").collect().map(_(0)).toList
+    val accuracy = accuracy_lst.sum / selected_sentiment_DF.count()
+    println(s"Spark-nlp Acc)
     0.42
   }
 }
