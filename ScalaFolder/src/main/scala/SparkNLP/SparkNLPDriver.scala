@@ -4,7 +4,7 @@ import com.johnsnowlabs.nlp.pretrained.PretrainedPipeline
 import com.johnsnowlabs.nlp.SparkNLP
 import org.apache.spark.sql._
 import org.apache.spark.sql.{SparkSession, DataFrame}
-import org.apache.spark.sql.functions.{array_contains, col}
+import org.apache.spark.sql.functions._
 import scala.math.BigDecimal.RoundingMode
 
 object SparkNLPDriver {
@@ -13,12 +13,7 @@ object SparkNLPDriver {
     val pipeline =
       PretrainedPipeline("analyze_sentimentdl_use_twitter", lang = "en")
 
-    val selectColumns = df.columns.toSeq
-
-    //select ugly name text
-    val name = selectColumns(2)
-
-    val results = pipeline.annotate(df, name)
+    val results = pipeline.annotate(df, "text")
 
     results
   }
@@ -133,4 +128,49 @@ object SparkNLPDriver {
 
     sentimentSummaryDF
   }
+
+  // test the accuracy of sparkNLP sentiment prediction
+  def computeSparkNLPAccuracy(df: DataFrame): Double = {
+    /* Create the SparkSession.
+    */
+    val spark = SparkSession.builder()
+      .master("local")
+      .appName("SparkNlPAccuracyTest")
+      .getOrCreate()
+
+    // use pretrained pipeline to fit dataframe(add sentiment structs)
+    val dfWithSentiment = setUpPipeline(df)
+    println("pipeline done")
+
+
+    // only keep text, polarity and sentiment result
+    val sentiment_DF =  dfWithSentiment.select(dfWithSentiment.col("text"),
+                        dfWithSentiment.col("polarity"),
+                        dfWithSentiment.col("sentiment.result")(0).as("SentimentResult"))
+
+    sentiment_DF.show()
+
+    //select positve and negative only
+    val selected_sentiment_DF = sentiment_DF.filter(sentiment_DF("SentimentResult") =!= "neutral")
+
+    //add test column to compare label and sentiment predict
+    val plus = "positive"
+    val minus = "negative"
+    val sentimentWithAccuracy = selected_sentiment_DF.withColumn("test result", when(((col("polarity") == 0 &&
+                                                                                        col("SentimentResult") == lit(minus))
+                                                                                        || (col("polarity") == 4 &&
+                                                                                        col("SentimentResult") == lit(plus)), 0).otherwise(1)))
+
+    0.42
+  }
 }
+
+
+//    println(sentiment_DF.count())
+//    println(selected_sentiment_DF.count())
+//    sentiment_DF.write.format("csv").save("test_sentiment.csv")
+//    selected_sentiment_DF.write.format("csv").save("test_selected_sentiment.csv")
+
+//    for (s <- sentiment_DF.select("SentimentResult").collect().map(_(0)).toList){
+//      println(s)
+//    }

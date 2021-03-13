@@ -1,5 +1,5 @@
 import MongoDB.MongoDBDriver.{connectCollection}
-import SparkNLP.SparkNLPDriver.getSentimentSummary
+import SparkNLP.SparkNLPDriver._
 
 object Main {
   def main(args: Array[String]): Unit = {
@@ -11,16 +11,18 @@ object Main {
       "true&replicaSet=atlas-1ek15t-shard-0&authSource=admin&retryWrites=true&w=majority"
 
     // collection name
-    val colletionName = "TwitterSentimentProject"
-//    val colletionName = "TestCollection"
+//    val colletionName = "Sentiment140"
+    val colletionName = "TestCollection"
 
-    // get the sentiment140 DataFrame
+    // get the DataFrame from MongoDB
     val sentiment_DF = connectCollection(uri,colletionName)
 
     // get the sentiment summary for sentiment140 dataset
-    val sentiment_summary = getSentimentSummary(sentiment_DF)
+//    val sentiment_summary = getSentimentSummary(sentiment_DF)
+//    sentiment_summary.show()
 
-    sentiment_summary.show()
+    // compute the accuracy of spark nlp sentiment prediction
+    val accuracy = computeSparkNLPAccuracy(sentiment_DF)
 
     println("Apache Spark Application Completed.")
   }
