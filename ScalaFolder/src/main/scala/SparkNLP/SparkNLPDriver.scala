@@ -3,8 +3,10 @@ package SparkNLP
 import com.johnsnowlabs.nlp.pretrained.PretrainedPipeline
 import com.johnsnowlabs.nlp.SparkNLP
 import org.apache.spark.sql._
-import org.apache.spark.sql.{SparkSession, DataFrame}
+import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.spark.sql.functions._
+
+
 import scala.math.BigDecimal.RoundingMode
 
 object SparkNLPDriver {
@@ -161,10 +163,11 @@ object SparkNLPDriver {
                                                      .when(col("polarity") === 4 && col("SentimentResult") === lit(plus), 0)
                                                      .otherwise(1))
 
-    val accuracy_lst: Array[Int] = sentimentWithAccuracy.select("test result").collect().map(_(0)).toList
-    val accuracy = accuracy_lst.sum / selected_sentiment_DF.count()
-    println(s"Spark-nlp Acc)
-    0.42
+    val accuracy = sentimentWithAccuracy.agg(sum("test result")).first.getDouble(0) / selected_sentiment_DF.count().toDouble
+
+    println(s"Spark-nlp Accuracy: $accuracy")
+    sentimentWithAccuracy.write.format("csv").save("test_accuracy.csv")
+    accuracy
   }
 }
 
