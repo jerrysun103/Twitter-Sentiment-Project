@@ -150,7 +150,7 @@ object SparkNLPDriver {
                         dfWithSentiment.col("polarity"),
                         dfWithSentiment.col("sentiment.result")(0).as("SentimentResult"))
 
-    sentiment_DF.show()
+//    sentiment_DF.show()
 
     //select positve and negative only
     val selected_sentiment_DF = sentiment_DF.filter(sentiment_DF("SentimentResult") =!= "neutral")
@@ -159,13 +159,13 @@ object SparkNLPDriver {
     val plus = "positive"
     val minus = "negative"
 
-    val sentimentWithAccuracy = selected_sentiment_DF.withColumn("test result", when(col("polarity") === 0 && col("SentimentResult") === lit(minus),0)
-                                                     .when(col("polarity") === 4 && col("SentimentResult") === lit(plus), 0)
-                                                     .otherwise(1))
+    val sentimentWithAccuracy = selected_sentiment_DF.withColumn("test result", when(col("polarity") === 0.0 && col("SentimentResult") === lit(minus),0)
+                                                     .when(col("polarity") === 4 && col("SentimentResult") === lit(plus), 0.0)
+                                                     .otherwise(1.0))
 
-    val accuracy = sentimentWithAccuracy.agg(sum("test result")).first.getDouble(0) / selected_sentiment_DF.count().toDouble
+    val accuracy = 1 - (sentimentWithAccuracy.agg(sum("test result")).first.getDouble(0) / selected_sentiment_DF.count().toDouble)
 
-    println(s"Spark-nlp Accuracy: $accuracy")
+
     sentimentWithAccuracy.write.format("csv").save("test_accuracy.csv")
     accuracy
   }
