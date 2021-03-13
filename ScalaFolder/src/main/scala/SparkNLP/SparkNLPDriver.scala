@@ -149,11 +149,13 @@ object SparkNLPDriver {
     val sentiment_DF =  dfWithSentiment.select(dfWithSentiment.col("text"),
                         dfWithSentiment.col("polarity"),
                         dfWithSentiment.col("sentiment.result")(0).as("SentimentResult"))
-
+    println("only keep text, polarity and sentiment result")
 //    sentiment_DF.show()
 
     //select positve and negative only
     val selected_sentiment_DF = sentiment_DF.filter(sentiment_DF("SentimentResult") =!= "neutral")
+    println("select positve and negative only")
+
 
     //add test column to compare label and sentiment predict
     val plus = "positive"
@@ -162,6 +164,7 @@ object SparkNLPDriver {
     val sentimentWithAccuracy = selected_sentiment_DF.withColumn("test result", when(col("polarity") === 0.0 && col("SentimentResult") === lit(minus),0)
                                                      .when(col("polarity") === 4 && col("SentimentResult") === lit(plus), 0.0)
                                                      .otherwise(1.0))
+    println("do the predict test")
 
     val accuracy = 1 - (sentimentWithAccuracy.agg(sum("test result")).first.getDouble(0) / selected_sentiment_DF.count().toDouble)
 
