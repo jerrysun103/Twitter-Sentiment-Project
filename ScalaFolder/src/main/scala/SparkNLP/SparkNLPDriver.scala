@@ -163,11 +163,11 @@ object SparkNLPDriver {
 
     val sentimentWithAccuracy = selected_sentiment_DF.withColumn("test result", when(col("polarity") === 0.0 && col("SentimentResult") === lit(minus),0)
                                                      .when(col("polarity") === 4 && col("SentimentResult") === lit(plus), 0.0)
-                                                     .otherwise(1.0))
+                                                     .otherwise(1.0)).cache()
     println("do the predict test")
 
     val accuracy = 1 - (sentimentWithAccuracy.agg(sum("test result")).first.getDouble(0) / selected_sentiment_DF.count().toDouble)
-
+    println("get the accuracy")
 
     sentimentWithAccuracy.write.format("csv").save("test_accuracy.csv")
     accuracy
