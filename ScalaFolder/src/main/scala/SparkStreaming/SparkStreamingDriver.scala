@@ -40,7 +40,7 @@ object SparkStreamingDriver {
 
     // Set up a Spark streaming context named "PopularHashtags" that runs locally using
     // all CPU cores and one-second batches of data
-    val ssc = new StreamingContext("local[*]", "PopularHashtags", Seconds(1))
+    val ssc = new StreamingContext("local[*]", "PopularHashtags", Seconds(60))
 
     // Get rid of log spam (should be called after the context is set up)
     setupLogging()
@@ -57,6 +57,7 @@ object SparkStreamingDriver {
     // Blow out each word into a new DStream
     val tweetwords = statuses.flatMap(tweetText => tweetText.split(" "))
     println("Blow out each word into a new DStream")
+    println(tweetwords)
 
     // Now eliminate anything that's not a hashtag
     val hashtags = tweetwords.filter(word => word.startsWith("#"))
@@ -67,7 +68,7 @@ object SparkStreamingDriver {
     println("Map each hashtag to a key/value pair of (hashtag, 1) so we can count them up by adding up the values")
 
     // Now count them up over a 5 minute window sliding every one second
-    val hashtagCounts = hashtagKeyValues.reduceByKeyAndWindow( (x,y) => x + y, (x,y) => x - y, Seconds(300), Seconds(1))
+    val hashtagCounts = hashtagKeyValues.reduceByKeyAndWindow( (x,y) => x + y, (x,y) => x - y, Seconds(300), Seconds(60))
     //  You will often see this written in the following shorthand:
     //val hashtagCounts = hashtagKeyValues.reduceByKeyAndWindow( _ + _, _ -_, Seconds(300), Seconds(1))
     println("Now count them up over a 5 minute window sliding every one second")
@@ -82,7 +83,7 @@ object SparkStreamingDriver {
 
     // Set a checkpoint directory, and kick it all off
     // I could watch this all day!
-    ssc.checkpoint("C:/checkpoint/")
+    ssc.checkpoint("checkpoint/")
     ssc.start()
     ssc.awaitTermination()
   }
