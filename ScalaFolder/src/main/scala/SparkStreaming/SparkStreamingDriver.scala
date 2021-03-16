@@ -2,8 +2,10 @@ package SparkStreaming
 
 import org.apache.spark.streaming._
 import org.apache.spark.streaming.twitter._
-import MongoDB.MongoDBDriver.connectCollection
+import com.mongodb.spark._
+import com.mongodb.spark.config._
 import org.apache.spark.sql.{DataFrame, SparkSession}
+import org.apache.spark.sql.functions.current_timestamp
 import SparkNLP.SparkNLPDriver._
 import com.johnsnowlabs.nlp.pretrained.PretrainedPipeline
 
@@ -90,7 +92,7 @@ object SparkStreamingDriver {
   }
 
   /** For given hashtag, find the sentiment polarity for streaming data*/
-  def runStreamingSentiment(keyword: String){
+  def runStreamingSentiment(keyword: String, sentimentMongoDBUri: String){
     // Configure Twitter credentials using twitter.txt
     setupTwitter()
     println("Set up Twitter Developer Account")
@@ -137,9 +139,19 @@ object SparkStreamingDriver {
       // add sentiment polarity for each row
       val streamingDataFrameWithSentiment = addSentiment(pipeline, StreamingDataFrame)
 
+
+      // add timestamp
+      val streamingDocument = streamingDataFrameWithSentiment.withColumn("timeStamp", current_timestamp())
+
+      // Write to MongoDB
+      val collectionName = "TwitterStreamingData"
+      val writeConfig = WriteConfig(Map("uri" -> sentimentMongoDBUri, "collection" -> collectionName,  "database" -> "LearnMongoDB"))
+      MongoSpark.save(streamingDocument.rdd, writeConfig)
+
       // Create a temporary view
       streamingDataFrameWithSentiment.createOrReplaceTempView("textWithSentiment")
-      streamingDataFrameWithSentiment.show(25, false)
+      streamingDataFrameWithSentiment.show()
+
     }
 
 //    targetTextStreaming.print

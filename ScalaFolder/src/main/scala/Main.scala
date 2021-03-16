@@ -28,7 +28,7 @@ object Main {
 
     //Spark Streaming
 //    runPopularHashTags()
-    runStreamingSentiment("COVID-19")
+    runStreamingSentiment("COVID-19", sentimentMongoDBUri = uri)
 
     println("Apache Spark Application Completed.")
   }
