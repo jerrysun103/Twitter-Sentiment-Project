@@ -109,8 +109,8 @@ object SparkStreamingDriver {
     println("Set up Twitter Developer Account")
 
     // Set up a Spark streaming context named "StreamingSentiment" that runs locally using
-    // all CPU cores and 10-second batches of data
-    val ssc = new StreamingContext("local[*]", "StreamingSentiment", Seconds(10))
+    // all CPU cores and 300-second batches of data
+    val ssc = new StreamingContext("local[*]", "StreamingSentiment", Seconds(300))
 
     // Sep up Spark-NLP Pipeline
     val pipeline = PretrainedPipeline("analyze_sentimentdl_use_twitter", lang = "en")
@@ -130,8 +130,8 @@ object SparkStreamingDriver {
     //only contain the text with target hashtag
     val targetTexts = statuses.filter(tweetText => tweetText.contains(keyword))
 
-    // Now kick them off over a 10 minute window sliding every 60 second
-    val targetTextStreaming = targetTexts.window(Seconds(600), Seconds(60))
+    // Now kick them off over a 30 minute window sliding every 300 second
+    val targetTextStreaming = targetTexts.window(Seconds(1800), Seconds(300))
 
     // for each rdd, do following
     // transform to rdd
@@ -153,15 +153,15 @@ object SparkStreamingDriver {
       // add timestamp
       val streamingDataFrameWithTimeStamp = streamingDataFrameWithSentiment.withColumn("timeStamp", current_timestamp())
 
-//      // transform rdd to BsonDocument
+      // transform rdd to BsonDocument
       val documentRdd: RDD[BsonDocument] = convertToBson(streamingDataFrameWithTimeStamp)
+      println("Converted RDD to BSON documents")
 
       // Write to MongoDB
       val collectionName = "TwitterStreamingData"
       val writeConfig = WriteConfig(Map("uri" -> sentimentMongoDBUri, "collection" -> collectionName,  "database" -> "LearnMongoDB"))
-//
-//      streamingDataFrameWithTimeStamp.rdd.saveToMongoDB(writeConfig)
       MongoSpark.save(documentRdd, writeConfig)
+      //      streamingDataFrameWithTimeStamp.rdd.saveToMongoDB(writeConfig)
 
       // Create a temporary view
       streamingDataFrameWithSentiment.createOrReplaceTempView("textWithSentiment")
