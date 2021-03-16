@@ -27,7 +27,7 @@ object Main {
 //    println(s"Spark-nlp Accuracy: $accuracy")
 
     //Spark Streaming
-    runSparkStreaming()
+    runPopularHashTags()
 
     println("Apache Spark Application Completed.")
   }
