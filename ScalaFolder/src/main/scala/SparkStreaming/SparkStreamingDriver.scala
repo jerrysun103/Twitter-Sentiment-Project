@@ -39,8 +39,8 @@ object SparkStreamingDriver {
     println("Set up Twitter")
 
     // Set up a Spark streaming context named "PopularHashtags" that runs locally using
-    // all CPU cores and 60-second batches of data
-    val ssc = new StreamingContext("local[*]", "PopularHashtags", Seconds(60))
+    // all CPU cores and 30-second batches of data
+    val ssc = new StreamingContext("local[*]", "PopularHashtags", Seconds(1))
 
     // Get rid of log spam (should be called after the context is set up)
     setupLogging()
@@ -66,10 +66,10 @@ object SparkStreamingDriver {
     val hashtagKeyValues = hashtags.map(hashtag => (hashtag, 1))
 
 
-    // Now count them up over a 5 minute window sliding every 60 second
-    val hashtagCounts = hashtagKeyValues.reduceByKeyAndWindow( (x,y) => x + y, (x,y) => x - y, Seconds(300), Seconds(60))
-    //  You will often see this written in the following shorthand:
-    //val hashtagCounts = hashtagKeyValues.reduceByKeyAndWindow( _ + _, _ -_, Seconds(300), Seconds(1))
+    // Now count them up over a 5 minute window sliding every 30 second
+    val hashtagCounts = hashtagKeyValues.reduceByKeyAndWindow( (x,y) => x + y, (x,y) => x - y, Seconds(300), Seconds(30))
+    //  shorthand:
+    //val hashtagCounts = hashtagKeyValues.reduceByKeyAndWindow( _ + _, _ -_, Seconds(300), Seconds(60))
 
 
     // Sort the results by the count values
