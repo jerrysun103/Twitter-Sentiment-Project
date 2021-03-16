@@ -27,8 +27,8 @@ object Main {
 //    println(s"Spark-nlp Accuracy: $accuracy")
 
     //Spark Streaming
-//    runPopularHashTags()
-    runStreamingSentiment("COVID-19", sentimentMongoDBUri = uri)
+    runPopularHashTags()
+//    runStreamingSentiment("COVID-19", sentimentMongoDBUri = uri)
 
     println("Apache Spark Application Completed.")
   }
