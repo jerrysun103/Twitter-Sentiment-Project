@@ -57,7 +57,7 @@ object SparkStreamingDriver {
     // Blow out each word into a new DStream
     val tweetwords = statuses.flatMap(tweetText => tweetText.split(" "))
     println("Blow out each word into a new DStream")
-    println(tweetwords)
+
 
     // Now eliminate anything that's not a hashtag
     val hashtags = tweetwords.filter(word => word.startsWith("#"))
