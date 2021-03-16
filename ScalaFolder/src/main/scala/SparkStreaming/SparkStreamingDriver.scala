@@ -4,6 +4,7 @@ import org.apache.spark.streaming._
 import org.apache.spark.streaming.twitter._
 import MongoDB.MongoDBDriver.{connectCollection}
 import org.apache.spark.sql.{DataFrame, SparkSession}
+import SparkNLP.SparkNLPDriver._
 
 object SparkStreamingDriver {
   // Access token: 1368376671733178372-inXzPbhkwXNnS56wx5NihMDFc7FM5D
@@ -115,6 +116,8 @@ object SparkStreamingDriver {
     // transform to rdd
     // Use Spark-NLP to get sentiment
     // Write into MongoDB
+
+
     targetTextStreaming.foreachRDD { rdd =>
 
       // Get the singleton instance of SparkSession
@@ -125,15 +128,15 @@ object SparkStreamingDriver {
       val StreamingDataFrame = rdd.toDF("text")
 
       // add sentiment polarity for each row
-
+      val streamingDataFrameWithSentiment = addSentiment(StreamingDataFrame)
 
       // Create a temporary view
-      StreamingDataFrame.createOrReplaceTempView("textWithSentiment")
+      streamingDataFrameWithSentiment.createOrReplaceTempView("textWithSentiment")
 
-      StreamingDataFrame.show()
+      streamingDataFrameWithSentiment.show()
     }
 
-    targetTextStreaming.print
+//    targetTextStreaming.print
 
     // Set a checkpoint directory, and kick it all off
     ssc.checkpoint("checkpoint/")

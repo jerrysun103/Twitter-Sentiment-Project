@@ -131,6 +131,18 @@ object SparkNLPDriver {
     sentimentSummaryDF
   }
 
+  //add sentiment result to input DataFrame
+  def addSentiment(df: DataFrame): DataFrame = {
+    // use pretrained pipeline to fit dataframe(add sentiment structs)
+    val dfWithSentiment = setUpPipeline(df)
+
+    // only keep text and sentiment result
+    val sentiment_DF =  dfWithSentiment.select(dfWithSentiment.col("text"),
+                                               dfWithSentiment.col("sentiment.result")(0).as("SentimentResult"))
+
+    sentiment_DF
+  }
+
   // test the accuracy of sparkNLP sentiment prediction
   def computeSparkNLPAccuracy(df: DataFrame): Double = {
     /* Create the SparkSession.
