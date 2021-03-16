@@ -1,4 +1,4 @@
-import MongoDB.MongoDBDriver.{connectCollection}
+
 import SparkNLP.SparkNLPDriver._
 import SparkStreaming.SparkStreamingDriver._
 

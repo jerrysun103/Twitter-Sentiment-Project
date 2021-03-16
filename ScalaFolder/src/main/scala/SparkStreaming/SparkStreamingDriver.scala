@@ -1,14 +1,24 @@
 package SparkStreaming
 
+
 import org.apache.spark.streaming._
 import org.apache.spark.streaming.twitter._
-import com.mongodb.spark._
-import com.mongodb.spark.config._
-import org.apache.spark.sql.{DataFrame, SparkSession}
+
+import org.apache.spark.sql._
 import org.apache.spark.sql.functions.current_timestamp
+import org.apache.spark.rdd.RDD
+
 import SparkNLP.SparkNLPDriver._
 import com.johnsnowlabs.nlp.pretrained.PretrainedPipeline
-import org.bson.Document
+
+import com.mongodb.spark.sql.MongoDBDriver.convertToBson
+import org.bson.{BsonDocument}
+
+import com.mongodb.spark._
+import com.mongodb.spark.config._
+
+import com.mongodb.spark.sql._
+
 
 object SparkStreamingDriver {
   // Access token: 1368376671733178372-inXzPbhkwXNnS56wx5NihMDFc7FM5D
@@ -144,14 +154,14 @@ object SparkStreamingDriver {
       val streamingDataFrameWithTimeStamp = streamingDataFrameWithSentiment.withColumn("timeStamp", current_timestamp())
 
 //      // transform rdd to BsonDocument
-//      val documents = streamingDataFrameWithTimeStamp.map(line =>  )
+      val documentRdd: RDD[BsonDocument] = convertToBson(streamingDataFrameWithTimeStamp)
 
       // Write to MongoDB
-//      val collectionName = "TwitterStreamingData"
-//      val writeConfig = WriteConfig(Map("uri" -> sentimentMongoDBUri, "collection" -> collectionName,  "database" -> "LearnMongoDB"))
+      val collectionName = "TwitterStreamingData"
+      val writeConfig = WriteConfig(Map("uri" -> sentimentMongoDBUri, "collection" -> collectionName,  "database" -> "LearnMongoDB"))
 //
 //      streamingDataFrameWithTimeStamp.rdd.saveToMongoDB(writeConfig)
-      //      MongoSpark.save(documents, writeConfig)
+      MongoSpark.save(documentRdd, writeConfig)
 
       // Create a temporary view
       streamingDataFrameWithSentiment.createOrReplaceTempView("textWithSentiment")
