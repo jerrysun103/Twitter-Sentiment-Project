@@ -147,10 +147,10 @@ object SparkStreamingDriver {
 //      val documents = streamingDataFrameWithTimeStamp.map(line =>  )
 
       // Write to MongoDB
-      val collectionName = "TwitterStreamingData"
-      val writeConfig = WriteConfig(Map("uri" -> sentimentMongoDBUri, "collection" -> collectionName,  "database" -> "LearnMongoDB"))
-
-      streamingDataFrameWithTimeStamp.rdd.saveToMongoDB(writeConfig)
+//      val collectionName = "TwitterStreamingData"
+//      val writeConfig = WriteConfig(Map("uri" -> sentimentMongoDBUri, "collection" -> collectionName,  "database" -> "LearnMongoDB"))
+//
+//      streamingDataFrameWithTimeStamp.rdd.saveToMongoDB(writeConfig)
       //      MongoSpark.save(documents, writeConfig)
 
       // Create a temporary view
