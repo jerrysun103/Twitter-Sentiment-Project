@@ -2,9 +2,10 @@ package SparkStreaming
 
 import org.apache.spark.streaming._
 import org.apache.spark.streaming.twitter._
-import MongoDB.MongoDBDriver.{connectCollection}
+import MongoDB.MongoDBDriver.connectCollection
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import SparkNLP.SparkNLPDriver._
+import com.johnsnowlabs.nlp.pretrained.PretrainedPipeline
 
 object SparkStreamingDriver {
   // Access token: 1368376671733178372-inXzPbhkwXNnS56wx5NihMDFc7FM5D
@@ -92,14 +93,20 @@ object SparkStreamingDriver {
   def runStreamingSentiment(keyword: String){
     // Configure Twitter credentials using twitter.txt
     setupTwitter()
+    println("Set up Twitter Developer Account")
 
-    // Set up a Spark streaming context named "PopularHashtags" that runs locally using
+    // Set up a Spark streaming context named "StreamingSentiment" that runs locally using
     // all CPU cores and 10-second batches of data
     val ssc = new StreamingContext("local[*]", "StreamingSentiment", Seconds(10))
+
+    // Sep up Spark-NLP Pipeline
+    val pipeline = PretrainedPipeline("analyze_sentimentdl_use_twitter", lang = "en")
+    println("Set up Spark-NLP Pipeline")
 
     // Get rid of log spam (should be called after the context is set up)
     setupLogging()
 
+    println("Enter Streaming")
     // Create a DStream from Twitter using our streaming context
     val tweets = TwitterUtils.createStream(ssc, None)
 
@@ -110,13 +117,13 @@ object SparkStreamingDriver {
     //only contain the text with target hashtag
     val targetTexts = statuses.filter(tweetText => tweetText.contains(keyword))
 
-    // Now kick them off over a 10 minute window sliding every 30 second
-    val targetTextStreaming = targetTexts.window(Seconds(600), Seconds(30))
+    // Now kick them off over a 10 minute window sliding every 60 second
+    val targetTextStreaming = targetTexts.window(Seconds(600), Seconds(60))
 
+    // for each rdd, do following
     // transform to rdd
     // Use Spark-NLP to get sentiment
     // Write into MongoDB
-
 
     targetTextStreaming.foreachRDD { rdd =>
 
@@ -128,12 +135,11 @@ object SparkStreamingDriver {
       val StreamingDataFrame = rdd.toDF("text")
 
       // add sentiment polarity for each row
-      val streamingDataFrameWithSentiment = addSentiment(StreamingDataFrame)
+      val streamingDataFrameWithSentiment = addSentiment(pipeline, StreamingDataFrame)
 
       // Create a temporary view
       streamingDataFrameWithSentiment.createOrReplaceTempView("textWithSentiment")
-
-      streamingDataFrameWithSentiment.show()
+      streamingDataFrameWithSentiment.show(25, false)
     }
 
 //    targetTextStreaming.print

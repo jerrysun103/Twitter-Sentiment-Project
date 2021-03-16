@@ -132,9 +132,9 @@ object SparkNLPDriver {
   }
 
   //add sentiment result to input DataFrame
-  def addSentiment(df: DataFrame): DataFrame = {
+  def addSentiment(pipeline: PretrainedPipeline, df: DataFrame): DataFrame = {
     // use pretrained pipeline to fit dataframe(add sentiment structs)
-    val dfWithSentiment = setUpPipeline(df)
+    val dfWithSentiment = pipeline.annotate(df, "text")
 
     // only keep text and sentiment result
     val sentiment_DF =  dfWithSentiment.select(dfWithSentiment.col("text"),
