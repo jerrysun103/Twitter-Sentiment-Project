@@ -8,6 +8,7 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.spark.sql.functions.current_timestamp
 import SparkNLP.SparkNLPDriver._
 import com.johnsnowlabs.nlp.pretrained.PretrainedPipeline
+import org.bson.Document
 
 object SparkStreamingDriver {
   // Access token: 1368376671733178372-inXzPbhkwXNnS56wx5NihMDFc7FM5D
@@ -139,14 +140,18 @@ object SparkStreamingDriver {
       // add sentiment polarity for each row
       val streamingDataFrameWithSentiment = addSentiment(pipeline, StreamingDataFrame)
 
-
       // add timestamp
-      val streamingDocument = streamingDataFrameWithSentiment.withColumn("timeStamp", current_timestamp())
+      val streamingDataFrameWithTimeStamp = streamingDataFrameWithSentiment.withColumn("timeStamp", current_timestamp())
+
+//      // transform rdd to BsonDocument
+//      val documents = streamingDataFrameWithTimeStamp.map(line =>  )
 
       // Write to MongoDB
       val collectionName = "TwitterStreamingData"
       val writeConfig = WriteConfig(Map("uri" -> sentimentMongoDBUri, "collection" -> collectionName,  "database" -> "LearnMongoDB"))
-      MongoSpark.save(streamingDocument.rdd, writeConfig)
+
+      streamingDataFrameWithTimeStamp.rdd.saveToMongoDB(writeConfig)
+      //      MongoSpark.save(documents, writeConfig)
 
       // Create a temporary view
       streamingDataFrameWithSentiment.createOrReplaceTempView("textWithSentiment")

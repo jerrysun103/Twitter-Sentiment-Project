@@ -8,6 +8,7 @@ import com.mongodb.spark._
 import org.apache.spark.sql.functions.{col, udf}
 import org.apache.spark.sql.types.{StructType, StructField}
 
+
 object MongoDBDriver {
   def connectCollection(uri: String, collectionName: String): DataFrame = {
     /* Create the SparkSession.
