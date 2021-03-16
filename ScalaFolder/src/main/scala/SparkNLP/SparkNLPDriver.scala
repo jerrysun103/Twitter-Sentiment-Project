@@ -123,7 +123,7 @@ object SparkNLPDriver {
     */
     val spark = SparkSession.builder()
       .master("local")
-      .appName("MongoSparkConnectorIntro")
+      .appName("GetSentimentSummary")
       .getOrCreate()
 
     val sentimentSummaryDF = tweetPositiveNegative(spark, df)

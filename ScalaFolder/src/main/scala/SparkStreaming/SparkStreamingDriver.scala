@@ -2,6 +2,8 @@ package SparkStreaming
 
 import org.apache.spark.streaming._
 import org.apache.spark.streaming.twitter._
+import MongoDB.MongoDBDriver.{connectCollection}
+import org.apache.spark.sql.{DataFrame, SparkSession}
 
 object SparkStreamingDriver {
   // Access token: 1368376671733178372-inXzPbhkwXNnS56wx5NihMDFc7FM5D
@@ -31,16 +33,15 @@ object SparkStreamingDriver {
     lines.close()
   }
 
-  /** Our main function where the action happens */
+  /** Rank the real time popular hashtags */
   def runPopularHashTags() {
 
     // Configure Twitter credentials using twitter.txt
     setupTwitter()
-    println("Set up Twitter")
 
     // Set up a Spark streaming context named "PopularHashtags" that runs locally using
-    // all CPU cores and 30-second batches of data
-    val ssc = new StreamingContext("local[*]", "PopularHashtags", Seconds(1))
+    // all CPU cores and 10-second batches of data
+    val ssc = new StreamingContext("local[*]", "PopularHashtags", Seconds(10))
 
     // Get rid of log spam (should be called after the context is set up)
     setupLogging()
@@ -81,9 +82,63 @@ object SparkStreamingDriver {
 
 
     // Set a checkpoint directory, and kick it all off
-    // I could watch this all day!
     ssc.checkpoint("checkpoint/")
     ssc.start()
     ssc.awaitTermination()
+  }
+
+  /** For given hashtag, find the sentiment polarity for streaming data*/
+  def runStreamingSentiment(keyword: String){
+    // Configure Twitter credentials using twitter.txt
+    setupTwitter()
+
+    // Set up a Spark streaming context named "PopularHashtags" that runs locally using
+    // all CPU cores and 10-second batches of data
+    val ssc = new StreamingContext("local[*]", "StreamingSentiment", Seconds(10))
+
+    // Get rid of log spam (should be called after the context is set up)
+    setupLogging()
+
+    // Create a DStream from Twitter using our streaming context
+    val tweets = TwitterUtils.createStream(ssc, None)
+
+
+    // Now extract the text of each status update into DStreams using map()
+    val statuses = tweets.map(status => status.getText)
+
+    //only contain the text with target hashtag
+    val targetTexts = statuses.filter(tweetText => tweetText.contains(keyword))
+
+    // Now kick them off over a 10 minute window sliding every 30 second
+    val targetTextStreaming = targetTexts.window(Seconds(600), Seconds(30))
+
+    // transform to rdd
+    // Use Spark-NLP to get sentiment
+    // Write into MongoDB
+    targetTextStreaming.foreachRDD { rdd =>
+
+      // Get the singleton instance of SparkSession
+      val spark = SparkSession.builder.config(rdd.sparkContext.getConf).getOrCreate()
+      import spark.implicits._
+
+      // Convert RDD[String] to DataFrame
+      val StreamingDataFrame = rdd.toDF("text")
+
+      // add sentiment polarity for each row
+
+
+      // Create a temporary view
+      StreamingDataFrame.createOrReplaceTempView("textWithSentiment")
+
+      StreamingDataFrame.show()
+    }
+
+    targetTextStreaming.print
+
+    // Set a checkpoint directory, and kick it all off
+    ssc.checkpoint("checkpoint/")
+    ssc.start()
+    ssc.awaitTermination()
+
   }
 }
