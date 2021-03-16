@@ -1,4 +1,4 @@
-
+import com.mongodb.spark.sql.MongoDBDriver._
 import SparkNLP.SparkNLPDriver._
 import SparkStreaming.SparkStreamingDriver._
 
@@ -14,20 +14,21 @@ object Main {
     // collection name
 //    val colletionName = "Sentiment140"
 //    val colletionName = "TestCollection"
+    val collectionName = "TwitterStreamingData"
 
     // get the DataFrame from MongoDB
-//    val sentiment_DF = connectCollection(uri,colletionName)
+    val sentiment_DF = connectCollection(uri,collectionName)
 
     // get the sentiment summary for above dataset
-//    val sentiment_summary = getSentimentSummary(sentiment_DF)
-//    sentiment_summary.show()
+    val sentiment_summary = getSentimentSummary(sentiment_DF)
+    sentiment_summary.show()
 
     // compute the accuracy of spark nlp sentiment prediction
 //    val accuracy = computeSparkNLPAccuracy(sentiment_DF)
 //    println(s"Spark-nlp Accuracy: $accuracy")
 
     //Spark Streaming
-    runPopularHashTags()
+//    runPopularHashTags()
 //    runStreamingSentiment("COVID-19", sentimentMongoDBUri = uri)
 
     println("Apache Spark Application Completed.")
