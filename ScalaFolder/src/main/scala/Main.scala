@@ -7,22 +7,22 @@ object Main {
     println("Apache Spark Application Started ...")
 
     // get the uri from MongoDB Compass
-    val uri: String = "mongodb://admin:Z7aDPBAx9GjWJw@cluster0-shard-00-00.k9dyo.mongodb.net:27017," +
+    val uri: String = "mongodb://admin<password>@cluster0-shard-00-00.k9dyo.mongodb.net:27017," +
       "cluster0-shard-00-01.k9dyo.mongodb.net:27017,cluster0-shard-00-02.k9dyo.mongodb.net:27017/LearnMongoDB?ssl=" +
       "true&replicaSet=atlas-1ek15t-shard-0&authSource=admin&retryWrites=true&w=majority"
-    
+
     // Part One:
     // collection name
 //    val colletionName = "Sentiment140"
 //    val colletionName = "TestCollection"
-//    val collectionName = "TwitterStreamingData"
+    val collectionName = "TwitterStreamingData"
 
     // get the DataFrame from MongoDB
-//    val sentiment_DF = connectCollection(uri,collectionName)
+    val sentiment_DF = connectCollection(uri,collectionName)
 
     // get the sentiment summary for above dataset
-//    val sentiment_summary = getSentimentSummary(sentiment_DF)
-//    sentiment_summary.show()
+    val sentiment_summary = getSentimentSummary(sentiment_DF)
+    sentiment_summary.show()
 
     // compute the accuracy of spark nlp sentiment prediction
 //    val accuracy = computeSparkNLPAccuracy(sentiment_DF)
@@ -31,7 +31,7 @@ object Main {
     // Part two:
     //Spark Streaming
 //    runPopularHashTags()
-//    runStreamingSentiment("COVID-19", sentimentMongoDBUri = uri)
+//    runStreamingSentiment("Boston", sentimentMongoDBUri = uri)
 
     println("Apache Spark Application Completed.")
   }

@@ -123,14 +123,13 @@ object SparkStreamingDriver {
     // Create a DStream from Twitter using our streaming context
     val tweets = TwitterUtils.createStream(ssc, None)
 
-
     // Now extract the text of each status update into DStreams using map()
     val statuses = tweets.map(status => status.getText)
 
-    //only contain the text with target hashtag
+    //only contain the text with target keyword
     val targetTexts = statuses.filter(tweetText => tweetText.contains(keyword))
 
-    // Now kick them off over a 30 minute window sliding every 300 second
+    // Now kick them off over a 30-minute window sliding every 300 second
     val targetTextStreaming = targetTexts.window(Seconds(1800), Seconds(300))
 
     // for each rdd, do following
