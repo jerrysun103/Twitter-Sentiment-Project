@@ -1,6 +1,6 @@
 # Twitter-Sentiment-Project
 
-This project aim to do the tweets sentiment polarity prediction using Scala, Apache Spark, and MongoDB. And there are 3 main component: MongoDB, Spark NLP, and Spark Streaming.
+This project aims to do the tweets sentiment polarity prediction using Scala, Apache Spark, and MongoDB. And there are 3 main component: MongoDB, Spark NLP, and Spark Streaming.
 
 # MongoDB
 Read from and push into MongoDB by leveraging Spark mongodb connector.
